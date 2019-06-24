@@ -1,0 +1,21 @@
+server:
+  port: 1203
+spring:
+  application:
+    name: auth-server
+  redis:
+    host:
+    port: 6379
+    database: 0
+    jedis:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+eureka:
+  instance:
+      prefer-ip-address: true
+      instance-id: ${spring.cloud.client.ip-address}:${server.port}
+  client:
+    service-url:
+      defaultZone: http://localhost:1111/eureka/
