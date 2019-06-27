@@ -6,4 +6,6 @@ import com.gaoxiong.pojo.Member;
 
 public interface MemberRepository extends JpaRepository<Member, Integer>, JpaSpecificationExecutor<Member> {
 
+
+    Member findByMemberName ( String username );
 }

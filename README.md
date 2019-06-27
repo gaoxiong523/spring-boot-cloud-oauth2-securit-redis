@@ -1,0 +1,11 @@
+可以看到ResourceServerConfig 是比SecurityConfig 的优先级低的。
+
+二者的关系：
+
+ResourceServerConfig 用于保护oauth相关的endpoints，同时主要作用于用户的登录(form login,Basic auth)
+SecurityConfig 用于保护oauth要开放的资源，同时主要作用于client端以及token的认证(Bearer auth)
+所以我们让SecurityConfig优先于ResourceServerConfig，且在SecurityConfig 不拦截oauth要开放的资源，在ResourceServerConfig 中配置需要token验证的资源，也就是我们对外提供的接口。所以这里对于所有微服务的接口定义有一个要求，就是全部以/api开头。
+
+如果这里不这样配置的话，在你拿到access_token去请求各个接口时会报 invalid_token的提示。
+
+另外，由于我们自定义认证逻辑，所以需要重写UserDetailService

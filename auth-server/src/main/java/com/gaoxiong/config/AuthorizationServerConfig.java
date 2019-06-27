@@ -1,9 +1,10 @@
 package com.gaoxiong.config;
 
+import com.gaoxiong.service.MyUserDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
@@ -11,7 +12,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
-import org.springframework.security.oauth2.provider.error.WebResponseExceptionTranslator;
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
 
@@ -35,6 +36,8 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Autowired
     private RedisConnectionFactory redisConnectionFactory;
 
+    @Autowired
+    private MyUserDetailService detailService;
 
     @Override
     public void configure ( AuthorizationServerSecurityConfigurer security ) throws Exception {
@@ -61,10 +64,6 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .scopes("read");
 
     }
-    @Bean
-    public WebResponseExceptionTranslator webResponseExceptionTranslator(){
-        return new MssWebResponseExceptionTranslator();
-    }
 
 
     @Bean
@@ -74,9 +73,26 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Override
     public void configure ( AuthorizationServerEndpointsConfigurer endpoints ) throws Exception {
         endpoints.tokenStore(tokenStore())
-                .userDetailsService()
-                .authenticationManager();
-        endpoints.tokenServices();
+                .userDetailsService(detailService)
+                .authenticationManager(authenticationManager);
+        endpoints.tokenServices(defaultTokenServices());
 
+    }
+
+    /**
+     * 自定义token service时 需要设置@primary 否则会报错
+     * @return
+     */
+    @Primary
+    @Bean
+    public DefaultTokenServices defaultTokenServices(){
+        DefaultTokenServices services = new DefaultTokenServices();
+        services.setTokenStore(tokenStore());
+        services.setSupportRefreshToken(true);
+        //设置token的有效期12小时
+        services.setAccessTokenValiditySeconds(60 * 60 * 12);
+        //设置refresh_token 的有效期30天
+        services.setRefreshTokenValiditySeconds(60 * 60 * 24 * 30);
+        return services;
     }
 }

@@ -15,6 +15,7 @@
         <module>order-service</module>
         <module>api-gateway</module>
         <module>api-zuul</module>
+        <module>common</module>
     </modules>
 
 
